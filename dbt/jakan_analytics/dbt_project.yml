@@ -1,0 +1,24 @@
+name: jakan_analytics
+version: 1.0.0
+config-version: 2
+profile: jakan_analytics
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+models:
+  jakan_analytics:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  jakan_analytics:
+    +schema: staging
+    +quote_columns: false

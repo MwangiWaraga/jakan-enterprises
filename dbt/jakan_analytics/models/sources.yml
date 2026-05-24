@@ -1,0 +1,22 @@
+version: 2
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: oraimo_products
+      - name: kilimall_inventory
+      - name: kilimall_completed_orders
+      - name: kilimall_weekly_statement_lines
+
+models:
+  - name: stg_oraimo_products
+    columns:
+      - name: source_product_key
+        tests: [not_null]
+  - name: stg_kilimall_inventory
+    columns:
+      - name: sku_id
+        tests: [not_null]
+  - name: fct_inventory_actions
+  - name: fct_price_updates
+  - name: fct_kilimall_order_profit

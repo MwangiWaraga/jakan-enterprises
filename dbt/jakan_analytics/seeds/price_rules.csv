@@ -1,0 +1,9 @@
+business_unit_id,category,cost_buffer,target_margin_pct,rounding_step,min_profit,active
+BU_PHONE,Audio,250,0.30,50,300,true
+BU_PHONE,Power,250,0.30,50,300,true
+BU_PHONE,Smart Office,250,0.30,50,300,true
+BU_PHONE,Personal Care,250,0.30,50,300,true
+BU_PHONE,Home Appliances,250,0.30,50,300,true
+BU_PHONE,Oraimo Home,250,0.30,50,300,true
+BU_PHONE,Oraimo Baby,250,0.30,50,300,true
+BU_PHONE,DEFAULT,250,0.30,50,300,true

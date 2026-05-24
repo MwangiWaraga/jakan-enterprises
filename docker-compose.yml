@@ -1,0 +1,78 @@
+services:
+  warehouse:
+    image: postgres:16
+    container_name: jakan_warehouse
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${WAREHOUSE_USER:-jakan}
+      POSTGRES_PASSWORD: ${WAREHOUSE_PASSWORD:-jakan_dev_password}
+      POSTGRES_DB: ${WAREHOUSE_DB:-jakan_warehouse}
+    ports:
+      - "${WAREHOUSE_PORT:-5432}:5432"
+    volumes:
+      - warehouse_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${WAREHOUSE_USER:-jakan} -d ${WAREHOUSE_DB:-jakan_warehouse}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  metabase_db:
+    image: postgres:16
+    container_name: jakan_metabase_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${MB_DB_USER:-metabase}
+      POSTGRES_PASSWORD: ${MB_DB_PASS:-metabase_dev_password}
+      POSTGRES_DB: ${MB_DB_DBNAME:-metabase}
+    volumes:
+      - metabase_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MB_DB_USER:-metabase} -d ${MB_DB_DBNAME:-metabase}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: jakan_metabase
+    restart: unless-stopped
+    depends_on:
+      metabase_db:
+        condition: service_healthy
+      warehouse:
+        condition: service_healthy
+    environment:
+      MB_DB_TYPE: ${MB_DB_TYPE:-postgres}
+      MB_DB_DBNAME: ${MB_DB_DBNAME:-metabase}
+      MB_DB_PORT: ${MB_DB_PORT:-5432}
+      MB_DB_USER: ${MB_DB_USER:-metabase}
+      MB_DB_PASS: ${MB_DB_PASS:-metabase_dev_password}
+      MB_DB_HOST: ${MB_DB_HOST:-metabase_db}
+    ports:
+      - "3000:3000"
+
+  dbt:
+    build:
+      context: .
+      dockerfile: Dockerfile.dbt
+    container_name: jakan_dbt
+    depends_on:
+      warehouse:
+        condition: service_healthy
+    environment:
+      DBT_PROFILES_DIR: /usr/app
+      DBT_WAREHOUSE_HOST: ${DBT_WAREHOUSE_HOST:-warehouse}
+      DBT_WAREHOUSE_PORT: ${DBT_WAREHOUSE_PORT:-5432}
+      DBT_WAREHOUSE_DB: ${DBT_WAREHOUSE_DB:-jakan_warehouse}
+      DBT_WAREHOUSE_USER: ${DBT_WAREHOUSE_USER:-jakan}
+      DBT_WAREHOUSE_PASSWORD: ${DBT_WAREHOUSE_PASSWORD:-jakan_dev_password}
+    working_dir: /usr/app
+    volumes:
+      - ./dbt/jakan_analytics:/usr/app
+    command: ["dbt", "--version"]
+
+volumes:
+  warehouse_data:
+  metabase_db_data:
