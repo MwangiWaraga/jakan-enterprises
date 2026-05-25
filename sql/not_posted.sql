@@ -68,19 +68,24 @@ oraimo_raw as (
 -- never posted 
 -- select * from kilimall_raw
 
-select 
-  k.listing_id,
-  k.sku_id,
-  k.kilimall_title,
-  o.oraimo_title,
-  k.kilimall_url,
-  o.oraimo_url,
-  k.status,
-  o.oraimo_shortened_title, k.kil_shortened_title
-from kilimall_raw k
-join oraimo_raw o  
-  on o.oraimo_shortened_title = k.kil_shortened_title
-where
-  o.stock_status = 'OutOfStock'
-  and k.status = 'ACTIVE'
+, out_of_stock as (
+   select 
+     k.listing_id,
+     k.sku_id,
+     k.kilimall_title,
+     o.oraimo_title,
+     k.kilimall_url,
+     o.oraimo_url,
+     k.status,
+     o.oraimo_shortened_title, k.kil_shortened_title
+   from kilimall_raw k
+   join oraimo_raw o  
+     on o.oraimo_shortened_title = k.kil_shortened_title
+   where
+     o.stock_status = 'OutOfStock'
+     and k.status = 'ACTIVE'
+)
+
+
+select * from out_of_stock
 

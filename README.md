@@ -367,6 +367,32 @@ python -m jakan.cli load-kilimall-weekly-statements data/raw/kilimall/weekly_sta
 python -m jakan.cli scrape-oraimo --load
 ```
 
+### Loading Only Specific Data
+
+You can load or update just one type of data at any time. Use these commands as needed:
+
+- **Load Kilimall inventory only:**
+  ```powershell
+  python -m jakan.cli load-kilimall-inventory data/raw/kilimall/inventory/kilimall_inventory.xlsx
+  ```
+
+- **Load Kilimall orders only:**
+  ```powershell
+  python -m jakan.cli load-kilimall-orders data/raw/kilimall/orders/completed_orders.xlsx
+  ```
+
+- **Load Kilimall weekly statements only:**
+  ```powershell
+  python -m jakan.cli load-kilimall-weekly-statements data/raw/kilimall/weekly_statements
+  ```
+
+- **Scrape and load Oraimo products only:**
+  ```powershell
+  python -m jakan.cli scrape-oraimo --load
+  ```
+
+You do NOT need to run the full pipeline—just run the command for the data you want to update.
+
 ---
 
 ## CLI Commands
