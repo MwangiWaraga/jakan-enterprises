@@ -53,26 +53,6 @@ services:
     ports:
       - "3000:3000"
 
-  dbt:
-    build:
-      context: .
-      dockerfile: Dockerfile.dbt
-    container_name: jakan_dbt
-    depends_on:
-      warehouse:
-        condition: service_healthy
-    environment:
-      DBT_PROFILES_DIR: /usr/app
-      DBT_WAREHOUSE_HOST: ${DBT_WAREHOUSE_HOST:-warehouse}
-      DBT_WAREHOUSE_PORT: ${DBT_WAREHOUSE_PORT:-5432}
-      DBT_WAREHOUSE_DB: ${DBT_WAREHOUSE_DB:-jakan_warehouse}
-      DBT_WAREHOUSE_USER: ${DBT_WAREHOUSE_USER:-jakan}
-      DBT_WAREHOUSE_PASSWORD: ${DBT_WAREHOUSE_PASSWORD:-jakan_dev_password}
-    working_dir: /usr/app
-    volumes:
-      - ./dbt/jakan_analytics:/usr/app
-    command: ["dbt", "--version"]
-
 volumes:
   warehouse_data:
   metabase_db_data:

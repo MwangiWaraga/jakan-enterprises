@@ -5,13 +5,27 @@ from jakan.common.ids import new_run_id, utc_now
 from jakan.common.text import parse_money, clean_column_name
 from jakan.common.db import insert_rows
 
-POSITIONAL_COLUMNS = ["order_number", "order_id", "sku_id", "sku_title", "sold_qty", "deal_price", "promotion_type", "discount", "order_time", "payment_time", "complete_time", "status"]
+POSITIONAL_COLUMNS = ["order_number", "order_id", "shop_id", "shop_name", "sku_id", "sku_title", "sold_qty", "deal_price", "promotion_type", "discount", "order_time", "payment_time", "complete_time", "status"]
 
 def as_dt(value):
     if value is None or pd.isna(value):
         return None
     dt = pd.to_datetime(value, errors="coerce")
     return None if pd.isna(dt) else dt.to_pydatetime()
+
+def as_int(value):
+    """Parse a value as an integer safely, handling floats and decimals."""
+    if value is None or pd.isna(value):
+        return None
+    try:
+        # Convert to float first to handle both int and float inputs
+        float_val = float(value)
+        if float_val != float_val:  # NaN check
+            return None
+        # Round to nearest integer instead of truncating
+        return int(round(float_val))
+    except (ValueError, TypeError):
+        return None
 
 def load_completed_orders_excel(path: str, store_name: str) -> int:
     p = Path(path)
@@ -37,7 +51,7 @@ def load_completed_orders_excel(path: str, store_name: str) -> int:
             "order_id": None if pd.isna(raw.get("order_id")) else str(raw.get("order_id")).strip(),
             "sku_id": None if pd.isna(raw.get("sku_id")) else str(raw.get("sku_id")).strip(),
             "sku_title": None if pd.isna(raw.get("sku_title")) else str(raw.get("sku_title")).strip(),
-            "sold_qty": int(parse_money(raw.get("sold_qty")) or 0),
+            "sold_qty": as_int(raw.get("sold_qty")),
             "deal_price": parse_money(raw.get("deal_price")),
             "promotion_type": None if pd.isna(raw.get("promotion_type")) else str(raw.get("promotion_type")).strip(),
             "discount": parse_money(raw.get("discount")),

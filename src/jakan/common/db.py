@@ -4,6 +4,7 @@ from typing import Mapping, Any
 import json
 from decimal import Decimal
 from datetime import datetime, date
+import math
 import psycopg
 from psycopg.rows import dict_row
 from jakan.common.config import load_config
@@ -36,6 +37,12 @@ def json_safe(value):
         return float(value)
     if isinstance(value, (datetime, date)):
         return value.isoformat()
+    if isinstance(value, float) and math.isnan(value):
+        return None
+    if isinstance(value, dict):
+        return {k: json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_safe(v) for v in value]
     return value
 
 def insert_rows(table: str, rows: list[Mapping[str, Any]]) -> int:
@@ -49,7 +56,8 @@ def insert_rows(table: str, rows: list[Mapping[str, Any]]) -> int:
         for col in columns:
             value = row.get(col)
             if isinstance(value, (dict, list)):
-                converted.append(json.dumps(value, default=json_safe, ensure_ascii=False))
+                cleaned = json_safe(value)
+                converted.append(json.dumps(cleaned, ensure_ascii=False))
             else:
                 converted.append(value)
         values.append(converted)

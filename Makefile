@@ -1,4 +1,4 @@
-.PHONY: up down logs init scrape dbt-seed dbt-run dbt-test dbt-build
+.PHONY: up down logs init load-all scrape
 
 up:
 	docker compose up -d --build
@@ -12,17 +12,11 @@ logs:
 init:
 	python -m jakan.cli init-db
 
+load-all: init
+	python -m jakan.cli load-kilimall-inventory data/raw/kilimall/inventory/kilimall_inventory.xlsx
+	python -m jakan.cli load-kilimall-orders data/raw/kilimall/orders/completed_orders.xlsx
+	python -m jakan.cli scrape-oraimo --load
+	@echo "✅ All data loaded successfully!"
+
 scrape:
 	python -m jakan.cli scrape-oraimo --load
-
-dbt-seed:
-	docker compose run --rm dbt dbt seed --profiles-dir /usr/app
-
-dbt-run:
-	docker compose run --rm dbt dbt run --profiles-dir /usr/app
-
-dbt-test:
-	docker compose run --rm dbt dbt test --profiles-dir /usr/app
-
-dbt-build:
-	docker compose run --rm dbt dbt build --profiles-dir /usr/app
