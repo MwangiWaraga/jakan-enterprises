@@ -31,19 +31,18 @@ oraimo_latest as (
 oraimo_raw as (
   -- latest oraimo products with shortened title for matching
   select
-    -- scraped_at                                                                                     as web_scrap_ts,
+    scraped_at                                                                                     as web_scrap_ts,
     product_url                                                                                    as oraimo_url,
-    -- 'Oraimo'                                                                                       as brand,
+    'Oraimo'                                                                                       as brand,
     category,
     initcap(title)                                                                                 as oraimo_title,
     lower(left(trim(title), 18))                                                                    as oraimo_shortened_title,
     price_now_num                                                                                  as current_price,
-    -- source_product_key                                                                             as product_id,
+    source_product_key                                                                             as product_id,
     stock_status
   from oraimo_latest
   where rn = 1
     and title is not null
-	and stock_status = 'InStock'
 )
 
 -- select stock_status from oraimo_raw group by 1
@@ -70,23 +69,54 @@ oraimo_raw as (
 	-- and  listing_id = '1001751846'
 )
 
-, not_posted as (
+-- goal is to activate inactive items that oraimo have restocked
+-- remove/deactive out of stock items already posted on kilimall  
+-- never posted 
+-- select status from kilimall_raw group by 1
 
+, out_of_stock as (
    select 
-    oraimo_url,
-    category,
-    oraimo_title,
-    -- oraimo_shortened_title,
-    current_price
-    -- stock_status
-   from oraimo_raw o 
-   left join  kilimall_raw k
+     k.listing_id,
+     k.sku_id,
+     k.kilimall_title,
+     o.oraimo_title,
+     k.kilimall_url,
+     o.oraimo_url,
+     k.status,
+     o.oraimo_shortened_title, k.kil_shortened_title
+   from kilimall_raw k
+   join oraimo_raw o  
      on o.oraimo_shortened_title = k.kil_shortened_title
-   where   
-      k.kil_shortened_title is null
-
+   where
+     o.stock_status = 'OutOfStock'
+     and k.status = 'ACTIVE'
+	 and k.rn = 1
 )
 
 
-select * from not_posted
+, not_active as (
+   select 
+     k.listing_id,
+     k.sku_id,
+     k.kilimall_title,
+     o.oraimo_title,
+     k.kilimall_url,
+     o.oraimo_url,
+     k.status,
+     o.oraimo_shortened_title, k.kil_shortened_title
+   from kilimall_raw k
+   join oraimo_raw o  
+     on o.oraimo_shortened_title = k.kil_shortened_title
+   where
+     o.stock_status = 'InStock'
+     and k.status ilike '%inactive%'
+	 and k.rn = 1
+)
+
+
+select *, 'Not Active' as action_type from not_active
+
+union all
+
+select *,  'OOS' as action_type  from out_of_stock 
 
